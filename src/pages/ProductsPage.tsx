@@ -217,8 +217,12 @@ export default function ProductsPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {finalFilteredProducts.map((product) => (
+        <div className={`grid gap-8 ${
+          (finalFilteredProducts.length > 0 ? finalFilteredProducts : products).length === 1
+            ? 'grid-cols-1 max-w-sm mx-auto'
+            : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+        }`}>
+          {(finalFilteredProducts.length > 0 ? finalFilteredProducts : (isBirthdayActive ? products : [])).map((product) => (
             <ProductCard
               key={product._id}
               name={product.name}
@@ -232,7 +236,7 @@ export default function ProductsPage() {
           ))}
         </div>
 
-        {finalFilteredProducts.length === 0 && (
+        {(finalFilteredProducts.length === 0 && (!isBirthdayActive || products.length === 0)) && (
           <div className="text-center py-16">
             <p className="text-gray-600 text-lg">
               {searchQuery

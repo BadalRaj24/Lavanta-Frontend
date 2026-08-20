@@ -79,7 +79,7 @@ export default function ProductCard({ name, price, rating, image, tag, onAddToCa
             }}
             className="text-xs font-bold text-[#6DBE45] hover:text-[#5aa538] uppercase tracking-wider py-1.5 px-3 rounded hover:bg-green-50 transition-colors"
           >
-            {isBirthdayActive ? 'SHOP BIRTHDAY OFFER' : 'SHOP NOW'}
+            SHOP NOW
           </button>
         </div>
       </div>
