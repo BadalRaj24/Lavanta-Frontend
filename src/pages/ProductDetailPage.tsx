@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, Leaf, ShieldCheck, Heart, Sparkles, ChevronLeft, CheckCircle } from 'lucide-react';
+import { Star, Leaf, ShieldCheck, Heart, Sparkles, ChevronLeft, Gift } from 'lucide-react';
 
 import Button from '../components/Button';
 import { useCart } from '../context/CartContext';
@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api from '../api';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useCampaign } from '../hooks/useCampaign';
 
 interface Product {
   _id: string;
@@ -46,6 +47,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [volume, setVolume] = useState('30ml');
   const [loading, setLoading] = useState(true);
+  const { isActive: isBirthdayActive, config } = useCampaign();
 
   // Review specific state
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -185,9 +187,21 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="min-w-0 w-full">
+            {isBirthdayActive && (
+              <div className="mb-4 bg-gradient-to-r from-amber-500 via-[#6DBE45] to-amber-600 text-white p-3 rounded-2xl shadow-md flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Gift className="w-5 h-5 text-amber-200" />
+                  <span className="font-bold text-sm tracking-wide">🎂 1st Birthday Offer</span>
+                </div>
+                <span className="bg-white text-amber-900 text-xs font-black px-2.5 py-1 rounded-full uppercase">
+                  50% OFF
+                </span>
+              </div>
+            )}
+
             <div className="flex items-center space-x-2 mb-4">
               <span className="bg-[#6DBE45] text-white text-xs px-3 py-1 rounded-full font-medium flex items-center shadow-sm">
-                <Sparkles className="w-3 h-3 mr-1 fill-white" /> Bestseller
+                <Sparkles className="w-3 h-3 mr-1 fill-white" /> {isBirthdayActive ? '1st Birthday Special' : 'Bestseller'}
               </span>
               <span className="bg-green-50 text-green-700 text-xs px-3 py-1 rounded-full font-medium border border-green-100">In Stock</span>
             </div>
@@ -209,8 +223,20 @@ export default function ProductDetailPage() {
               <span className="ml-3 text-gray-600">({reviewCount} reviews)</span>
             </div>
 
-            <div className="mb-6">
-              <span className="text-4xl font-bold text-[#6DBE45]">₹{product.price}</span>
+            <div className="mb-6 flex items-baseline space-x-4">
+              {isBirthdayActive && (
+                <span className="text-2xl text-gray-400 line-through font-semibold">
+                  ₹{config.ORIGINAL_PRICE}
+                </span>
+              )}
+              <span className="text-4xl md:text-5xl font-bold font-serif text-[#6DBE45]">
+                ₹{isBirthdayActive ? config.CAMPAIGN_PRICE : product.price}
+              </span>
+              {isBirthdayActive && (
+                <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                  {config.DISCOUNT_PERCENT}% OFF
+                </span>
+              )}
             </div>
 
             <p className="text-gray-700 mb-6 leading-relaxed break-words">{product.description}</p>
@@ -286,10 +312,10 @@ export default function ProductDetailPage() {
               </Button>
               <Button
                 variant="outline"
-                className="flex-1 border-2 border-[#6DBE45] text-[#6DBE45] text-lg"
+                className="flex-1 border-2 border-[#6DBE45] text-[#6DBE45] text-lg font-bold hover:bg-green-50"
                 onClick={() => {
                   addToCart(product, quantity);
-                  navigate('/checkout');
+                  navigate('/checkout', { state: { product, quantity, isCartCheckout: false } });
                 }}
               >
                 Buy Now

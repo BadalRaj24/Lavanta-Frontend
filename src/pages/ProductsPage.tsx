@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, SlidersHorizontal, Sparkles, Gift } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useCampaign } from '../hooks/useCampaign';
 
 interface Product {
   _id: string;
@@ -18,6 +19,7 @@ export default function ProductsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
+  const { isActive: isBirthdayActive, config } = useCampaign();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,12 +90,33 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-[#F8F8F8]">
-      <div className="bg-gradient-to-r from-[#DFC5FE] to-[#6DBE45]/20 py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="font-serif text-5xl font-bold text-[#6DBE45] mb-4">Best Sellers</h1>
-          <p className="text-gray-700 text-lg">Discover our most loved skincare essentials crafted with nature&apos;s finest</p>
+      {/* Header Banner — Conditional Birthday vs Standard */}
+      {isBirthdayActive ? (
+        <div className="bg-gradient-to-r from-amber-100 via-[#DFC5FE]/40 to-[#6DBE45]/20 py-16 px-4 sm:px-6 lg:px-8 border-b border-amber-200/60 relative overflow-hidden">
+          <div className="max-w-7xl mx-auto text-center relative z-10">
+            <div className="inline-flex items-center space-x-2 bg-amber-200/70 border border-amber-300 px-4 py-1.5 rounded-full mb-4 shadow-sm">
+              <Gift className="w-4 h-4 text-amber-800" />
+              <span className="text-xs sm:text-sm font-bold tracking-widest text-amber-900 uppercase">
+                1ST BIRTHDAY CELEBRATION
+              </span>
+              <Sparkles className="w-4 h-4 text-amber-800" />
+            </div>
+            <h1 className="font-serif text-4xl sm:text-5xl font-bold text-gray-900 mb-3">
+              Birthday Special • 50% OFF
+            </h1>
+            <p className="text-gray-700 text-lg max-w-2xl mx-auto">
+              Celebrate one year of honest skincare with our signature Glow Face Serum at just <span className="font-bold text-[#6DBE45] text-xl">₹199</span> (Original: <span className="line-through text-gray-400">₹399</span>).
+            </p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-gradient-to-r from-[#DFC5FE] to-[#6DBE45]/20 py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto text-center">
+            <h1 className="font-serif text-5xl font-bold text-[#6DBE45] mb-4">Best Sellers</h1>
+            <p className="text-gray-700 text-lg">Discover our most loved skincare essentials crafted with nature&apos;s finest</p>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -221,13 +244,22 @@ export default function ProductsPage() {
       <section className="bg-gradient-to-r from-[#DFC5FE] to-[#6DBE45] py-12 px-4 sm:px-6 lg:px-8 mt-16">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="font-serif text-3xl font-bold text-white mb-4">
-            Save More with Nature&apos;s Combos
+            {isBirthdayActive ? "Celebrate 1 Year of Honest Skincare 🎂" : "Save More with Nature's Combos"}
           </h2>
           <p className="text-white text-lg mb-6">
-            Shop the Lavanta Glow Set and get complete skincare at exclusive prices
+            {isBirthdayActive
+              ? "Experience our Glow Face Serum at ₹199 (50% OFF) — A special celebration from us to your skin."
+              : "Shop the Lavanta Glow Set and get complete skincare at exclusive prices"}
           </p>
-          <button className="bg-white text-[#6DBE45] px-8 py-3 rounded-full font-medium hover:bg-gray-100 transition-colors shadow-lg">
-            Explore Combos
+          <button 
+            onClick={() => {
+              if (products.length > 0) {
+                navigate(`/product/${products[0]._id}`);
+              }
+            }}
+            className="bg-white text-[#6DBE45] px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors shadow-lg"
+          >
+            {isBirthdayActive ? "SHOP BIRTHDAY OFFER" : "Explore Combos"}
           </button>
         </div>
       </section>

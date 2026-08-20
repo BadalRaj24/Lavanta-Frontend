@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, CreditCard, MapPin, Plus, Check, Tag } from 'lucide-react';
+import { ChevronLeft, CreditCard, MapPin, Plus, Check, Tag, Gift } from 'lucide-react';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useCampaign } from '../hooks/useCampaign';
 
 interface Address {
     _id?: string;
@@ -34,8 +35,9 @@ export default function CheckoutPage() {
     const { product, quantity = 1, isCartCheckout = false } = location.state || {};
 
     const { user } = useAuth();
-    const { cart, total: cartTotal, clearCart } = useCart();
+    const { cart, total: cartTotal, originalTotal, cartCount, clearCart, getItemUnitPrice } = useCart();
     const { addToast } = useToast();
+    const { isActive: isBirthdayActive, config } = useCampaign();
 
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
@@ -63,7 +65,10 @@ export default function CheckoutPage() {
     });
 
     const SHIPPING_COST = 0;
-    const subtotal = isCartCheckout ? cartTotal : (product?.price || 0) * quantity;
+    const directProductPrice = isBirthdayActive ? config.CAMPAIGN_PRICE : (product?.price || config.ORIGINAL_PRICE);
+    const subtotal = isCartCheckout ? cartTotal : directProductPrice * quantity;
+    const rawOriginalTotal = isCartCheckout ? originalTotal : config.ORIGINAL_PRICE * quantity;
+    const birthdayDiscountAmount = isBirthdayActive ? Math.max(0, rawOriginalTotal - subtotal) : 0;
     const discount = appliedPromo ? appliedPromo.discountAmount : 0;
     const finalTotal = Math.max(0, subtotal + SHIPPING_COST - discount);
 
@@ -161,13 +166,13 @@ export default function CheckoutPage() {
                 ? cart.map(item => ({
                     product: item.product._id,
                     name: item.product.name,
-                    price: item.product.price,
+                    price: getItemUnitPrice(item.product),
                     quantity: item.quantity
                 }))
                 : [{
                     product: product._id,
                     name: product.name,
-                    price: product.price,
+                    price: directProductPrice,
                     quantity: quantity
                 }];
 
@@ -181,7 +186,7 @@ export default function CheckoutPage() {
                     phone: selectedAddress.phone
                 },
                 items: orderItems,
-                totalAmount: subtotal, // Send original total
+                totalAmount: subtotal, // Send original subtotal
                 promoCode: appliedPromo ? appliedPromo.code : undefined,
                 paymentMethod: paymentMethod
             };
@@ -199,8 +204,12 @@ export default function CheckoutPage() {
                 const keyRes = await api.get('/orders/config/razorpay', configConfig);
                 const rzpKey = keyRes.data.key;
 
-                // Create Razorpay Order
-                const orderRes = await api.post('/orders/create-razorpay-order', { amount: finalTotal }, configConfig);
+                // Create Razorpay Order - Backend calculates and validates amount
+                const orderRes = await api.post('/orders/create-razorpay-order', {
+                    amount: finalTotal,
+                    items: orderItems,
+                    promoCode: appliedPromo ? appliedPromo.code : undefined
+                }, configConfig);
                 const { id: order_id } = orderRes.data;
 
                 const options = {
@@ -208,8 +217,8 @@ export default function CheckoutPage() {
                     amount: finalTotal * 100,
                     currency: 'INR',
                     name: 'Lavanta Naturals',
-                    description: 'Test Transaction',
-                    image: '/images/logo.png', // Assuming logo exists
+                    description: 'Lavanta Naturals Order',
+                    image: '/lavantalogo.jpg',
                     order_id: order_id,
                     handler: async function (response: any) {
                         try {
@@ -228,8 +237,8 @@ export default function CheckoutPage() {
                             }
                             navigate('/order-success');
                         } catch (err: any) {
-                            console.error(err);
-                            addToast('error', err.response?.data?.message || 'Payment Verification Failed');
+                            console.error('Order Verification Error:', err);
+                            addToast('error', 'Payment successful but order creation failed. Contact support.');
                         }
                     },
                     prefill: {
@@ -268,10 +277,6 @@ export default function CheckoutPage() {
             if (paymentMethod === 'COD') {
                 setOrderPlacing(false);
             }
-            // For Razorpay, we let the widget handle its own "loading" state since it opens asynchronously.
-            // We'll set it to false here so the button isn't stuck if they close the widget,
-            // BUT wait, if we set it false immediately, they can double click.
-            // We will setOrderPlacing(false) after a small delay so they don't spam while widget opens.
             setTimeout(() => setOrderPlacing(false), 2000);
         }
     };
@@ -291,7 +296,7 @@ export default function CheckoutPage() {
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">No product selected</h2>
                 <button onClick={() => navigate('/products')} className="text-[#6DBE45] underline">Back to Shop</button>
             </div>
-        )
+        );
     }
 
     return (
@@ -350,87 +355,106 @@ export default function CheckoutPage() {
                                     {/* Add New Address Trigger */}
                                     <button
                                         onClick={() => setShowAddAddress(true)}
-                                        className="w-full flex items-center justify-center space-x-2 border-2 border-dashed border-[#6DBE45] text-[#6DBE45] py-4 rounded-xl hover:bg-[#6DBE45]/5 transition-colors font-medium mt-4"
+                                        className="w-full border-2 border-dashed border-gray-300 rounded-xl p-4 text-gray-600 hover:border-[#6DBE45] hover:text-[#6DBE45] font-medium flex items-center justify-center space-x-2 transition-colors mt-4"
                                     >
                                         <Plus className="w-5 h-5" />
                                         <span>Add New Address</span>
                                     </button>
                                 </div>
                             ) : (
-                                <div>
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="font-semibold text-lg text-gray-800">Add New Address</h3>
+                                /* Add Address Form */
+                                <form onSubmit={handleAddressSubmit} className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={newAddress.fullName}
+                                                onChange={(e) => setNewAddress({ ...newAddress, fullName: e.target.value })}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                            <input
+                                                type="tel"
+                                                required
+                                                value={newAddress.phone}
+                                                onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={newAddress.street}
+                                            onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={newAddress.city}
+                                                onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={newAddress.state}
+                                                onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">PIN Code</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={newAddress.zip}
+                                                onChange={(e) => setNewAddress({ ...newAddress, zip: e.target.value })}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2 pt-2">
+                                        <input
+                                            type="checkbox"
+                                            id="isDefault"
+                                            checked={newAddress.isDefault}
+                                            onChange={(e) => setNewAddress({ ...newAddress, isDefault: e.target.checked })}
+                                            className="w-4 h-4 text-[#6DBE45] border-gray-300 rounded focus:ring-[#6DBE45]"
+                                        />
+                                        <label htmlFor="isDefault" className="text-sm text-gray-700">Set as default address</label>
+                                    </div>
+                                    <div className="flex space-x-4 pt-4">
                                         <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="flex-1 bg-[#6DBE45] text-white py-2 rounded-lg font-medium hover:bg-[#5da838] transition-colors"
+                                        >
+                                            {loading ? 'Saving...' : 'Save Address'}
+                                        </button>
+                                        <button
+                                            type="button"
                                             onClick={() => setShowAddAddress(false)}
-                                            className="text-sm text-gray-500 hover:text-gray-700"
+                                            className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                                         >
                                             Cancel
                                         </button>
                                     </div>
-                                    <form onSubmit={handleAddressSubmit} className="space-y-4 animate-in fade-in slide-in-from-top-4">
-                                        <div className="grid md:grid-cols-2 gap-4">
-                                            <input
-                                                type="text"
-                                                placeholder="Full Name"
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
-                                                value={newAddress.fullName}
-                                                onChange={(e) => setNewAddress({ ...newAddress, fullName: e.target.value })}
-                                            />
-                                            <input
-                                                type="text"
-                                                placeholder="Phone Number"
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
-                                                value={newAddress.phone}
-                                                onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
-                                            />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            placeholder="Street Address, Appt, Suite"
-                                            required
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
-                                            value={newAddress.street}
-                                            onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
-                                        />
-                                        <div className="grid md:grid-cols-3 gap-4">
-                                            <input
-                                                type="text"
-                                                placeholder="City"
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
-                                                value={newAddress.city}
-                                                onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-                                            />
-                                            <input
-                                                type="text"
-                                                placeholder="State"
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
-                                                value={newAddress.state}
-                                                onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
-                                            />
-                                            <input
-                                                type="text"
-                                                placeholder="ZIP Code"
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6DBE45] outline-none"
-                                                value={newAddress.zip}
-                                                onChange={(e) => setNewAddress({ ...newAddress, zip: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="pt-2">
-                                            <button
-                                                type="submit"
-                                                disabled={loading}
-                                                className="w-full bg-[#6DBE45] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#5da838] transition-colors"
-                                            >
-                                                {loading ? 'Saving...' : 'Save & Use Address'}
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
+                                </form>
                             )}
                         </div>
 
@@ -471,26 +495,44 @@ export default function CheckoutPage() {
                     {/* Right Column: Order Summary */}
                     <div>
                         <div className="bg-white rounded-2xl shadow-lg p-8 sticky top-24">
-                            <h3 className="font-serif text-xl font-bold text-gray-800 mb-6">Order Summary</h3>
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="font-serif text-xl font-bold text-gray-800">Order Summary</h3>
+                                {isBirthdayActive && (
+                                    <span className="bg-amber-100 text-amber-800 text-[11px] font-black px-2.5 py-1 rounded-full uppercase border border-amber-200">
+                                        🎂 50% OFF
+                                    </span>
+                                )}
+                            </div>
 
                             <div className="space-y-4 max-h-64 overflow-y-auto mb-4 p-4">
                                 {isCartCheckout ? (
-                                    cart.map((item) => (
-                                        <div key={item.product._id} className="flex items-center justify-between">
-                                            <div className="flex items-center space-x-3">
-                                                <div className="relative mr-2">
-                                                    <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover rounded-lg border border-gray-100" />
-                                                    <span className="absolute -top-2 -right-2 bg-[#6DBE45] text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-md z-10">
-                                                        {item.quantity}
-                                                    </span>
+                                    cart.map((item) => {
+                                        const itemPrice = getItemUnitPrice(item.product);
+                                        const itemOriginal = item.product?.originalPrice || config.ORIGINAL_PRICE;
+                                        return (
+                                            <div key={item.product._id} className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="relative mr-2">
+                                                        <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover rounded-lg border border-gray-100" />
+                                                        <span className="absolute -top-2 -right-2 bg-[#6DBE45] text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-md z-10">
+                                                            {item.quantity}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-gray-800 truncate w-32">{item.product.name}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-gray-800 truncate w-32">{item.product.name}</p>
+                                                <div className="text-right">
+                                                    {isBirthdayActive && (
+                                                        <span className="text-xs text-gray-400 line-through mr-2">
+                                                            ₹{itemOriginal * item.quantity}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-sm font-bold text-gray-800">₹{itemPrice * item.quantity}</span>
                                                 </div>
                                             </div>
-                                            <span className="text-sm font-semibold">₹{item.product.price * item.quantity}</span>
-                                        </div>
-                                    ))
+                                        );
+                                    })
                                 ) : (
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-3">
@@ -500,7 +542,14 @@ export default function CheckoutPage() {
                                                 <p className="text-xs text-gray-500">Qty: {quantity}</p>
                                             </div>
                                         </div>
-                                        <span className="text-sm font-semibold">₹{product.price * quantity}</span>
+                                        <div className="text-right">
+                                            {isBirthdayActive && (
+                                                <span className="text-xs text-gray-400 line-through mr-2">
+                                                    ₹{config.ORIGINAL_PRICE * quantity}
+                                                </span>
+                                            )}
+                                            <span className="text-sm font-bold text-gray-800">₹{directProductPrice * quantity}</span>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -549,24 +598,36 @@ export default function CheckoutPage() {
                             </div>
 
                             <div className="border-t border-gray-100 my-4 pt-4 space-y-2">
-                                <div className="flex justify-between text-gray-600">
+                                {isBirthdayActive && birthdayDiscountAmount > 0 && (
+                                    <>
+                                        <div className="flex justify-between text-gray-500 text-sm">
+                                            <span>Original Total</span>
+                                            <span className="line-through">₹{rawOriginalTotal}</span>
+                                        </div>
+                                        <div className="flex justify-between text-green-600 text-sm font-semibold">
+                                            <span>🎂 1st Birthday Discount (50% OFF)</span>
+                                            <span>-₹{birthdayDiscountAmount}</span>
+                                        </div>
+                                    </>
+                                )}
+                                <div className="flex justify-between text-gray-700 font-medium">
                                     <span>Subtotal</span>
                                     <span>₹{subtotal}</span>
                                 </div>
                                 {appliedPromo && (
                                     <div className="flex justify-between text-green-600 font-medium">
-                                        <span>Discount</span>
+                                        <span>Discount ({appliedPromo.code})</span>
                                         <span>-₹{appliedPromo.discountAmount}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between text-gray-600">
                                     <span>Shipping</span>
-                                    <span>₹{SHIPPING_COST}</span>
+                                    <span>{SHIPPING_COST === 0 ? 'FREE' : `₹${SHIPPING_COST}`}</span>
                                 </div>
                             </div>
                             <div className="border-t border-gray-200 my-4 pt-4">
                                 <div className="flex justify-between text-lg font-bold text-[#6DBE45]">
-                                    <span>Total</span>
+                                    <span>Total Amount</span>
                                     <span>₹{finalTotal}</span>
                                 </div>
                             </div>

@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import AnnouncementBar from './campaign/AnnouncementBar';
+import { useCampaign } from '../hooks/useCampaign';
 
 export default function Header() {
   const [loginDropdownOpen, setLoginDropdownOpen] = useState(false);
@@ -13,7 +15,7 @@ export default function Header() {
   const { cartCount } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
-
+  const { isActive: isBirthdayActive } = useCampaign();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -50,6 +52,7 @@ export default function Header() {
 
   const navItems = [
     { label: 'Home', path: '/' },
+    ...(isBirthdayActive ? [{ label: '🎂 Birthday Offer', path: '/products' }] : []),
     { label: 'About Us', path: '/about' },
     { label: 'Contact', path: '/contact' }
   ];
@@ -82,6 +85,9 @@ export default function Header() {
 
   return (
     <header className={`bg-white shadow-md sticky top-0 z-50 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+      {/* Birthday Campaign Announcement Bar */}
+      <AnnouncementBar onOfferClick={() => navigate('/products')} />
+
       {/* Top Header Section */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">

@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 import api from '../api';
+import { useCampaign } from '../hooks/useCampaign';
 
 interface CartItem {
     product: any;
@@ -16,7 +17,10 @@ interface CartContextType {
     clearCart: () => Promise<void>;
     cartCount: number;
     total: number;
+    originalTotal: number;
+    birthdayDiscount: number;
     loading: boolean;
+    getItemUnitPrice: (product: any) => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -26,6 +30,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
     const { addToast } = useToast();
+    const { isActive: isBirthdayActive, config: campaignConfig } = useCampaign();
 
     useEffect(() => {
         if (user) {
@@ -112,11 +117,44 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    // Calculate effective selling price for cart item
+    const getItemUnitPrice = (product: any) => {
+        if (!product) return campaignConfig.ORIGINAL_PRICE;
+        if (isBirthdayActive) {
+            return campaignConfig.CAMPAIGN_PRICE;
+        }
+        return product.price || campaignConfig.ORIGINAL_PRICE;
+    };
+
     const cartCount = cart.reduce((acc, item) => acc + (item.product ? item.quantity : 0), 0);
-    const total = cart.reduce((acc, item) => acc + (item.product ? (item.product.price || 0) * item.quantity : 0), 0);
+    
+    // Calculate totals using effective campaign pricing
+    const total = cart.reduce((acc, item) => {
+        if (!item.product) return acc;
+        return acc + getItemUnitPrice(item.product) * item.quantity;
+    }, 0);
+
+    const originalTotal = cart.reduce((acc, item) => {
+        if (!item.product) return acc;
+        return acc + (item.product.originalPrice || campaignConfig.ORIGINAL_PRICE) * item.quantity;
+    }, 0);
+
+    const birthdayDiscount = isBirthdayActive ? Math.max(0, originalTotal - total) : 0;
 
     return (
-        <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, cartCount, total, loading }}>
+        <CartContext.Provider value={{
+            cart,
+            addToCart,
+            removeFromCart,
+            updateQuantity,
+            clearCart,
+            cartCount,
+            total,
+            originalTotal,
+            birthdayDiscount,
+            loading,
+            getItemUnitPrice
+        }}>
             {children}
         </CartContext.Provider>
     );

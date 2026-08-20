@@ -1,11 +1,13 @@
-import { Trash2, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { Trash2, ShoppingBag, ArrowLeft, Gift } from 'lucide-react';
 import Button from '../components/Button';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { useCampaign } from '../hooks/useCampaign';
 
 export default function CartPage() {
-    const { cart, removeFromCart, updateQuantity, total, cartCount } = useCart();
+    const { cart, removeFromCart, updateQuantity, total, originalTotal, birthdayDiscount, cartCount, getItemUnitPrice } = useCart();
     const navigate = useNavigate();
+    const { isActive: isBirthdayActive, config } = useCampaign();
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-white to-[#F8F8F8] py-12 px-4 sm:px-6 lg:px-8">
@@ -23,20 +25,44 @@ export default function CartPage() {
                     </h1>
                 </div>
 
+                {isBirthdayActive && (
+                    <div className="mb-6 bg-gradient-to-r from-amber-500/10 via-[#6DBE45]/10 to-amber-500/10 border border-amber-300/60 rounded-2xl p-4 flex items-center justify-between text-amber-900 shadow-sm">
+                        <div className="flex items-center space-x-2">
+                            <Gift className="w-5 h-5 text-amber-700" />
+                            <span className="font-bold text-sm sm:text-base">1st Birthday Offer Applied!</span>
+                        </div>
+                        <span className="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full uppercase">
+                            50% OFF
+                        </span>
+                    </div>
+                )}
+
                 <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
                     {cart.length > 0 ? (
                         <div className="space-y-6">
                             {cart.map((item) => {
                                 if (!item.product) return null;
+                                const unitPrice = getItemUnitPrice(item.product);
+                                const itemOriginalPrice = item.product.originalPrice || config.ORIGINAL_PRICE;
                                 return (
                                     <div key={item.product._id} className="flex items-center justify-between border-b border-gray-100 pb-6 last:border-0 last:pb-0">
                                         <div className="flex items-center space-x-4">
                                             <img src={item.product.image} alt={item.product.name} className="w-20 h-20 object-cover rounded-lg" />
                                             <div>
                                                 <h3 className="font-semibold text-gray-800 text-lg">{item.product.name}</h3>
-                                                <p className="flex items-center space-x-2">
-                                                    <span className="text-[#6DBE45] font-bold">₹{item.product.price}</span>
-                                                </p>
+                                                <div className="flex items-baseline space-x-2 mt-1">
+                                                    {isBirthdayActive && (
+                                                        <span className="text-gray-400 line-through text-xs font-medium">
+                                                            ₹{itemOriginalPrice}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-[#6DBE45] font-bold text-lg">₹{unitPrice}</span>
+                                                    {isBirthdayActive && (
+                                                        <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.2 rounded">
+                                                            50% OFF
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="flex items-center space-x-6">
@@ -79,9 +105,23 @@ export default function CartPage() {
 
                 {cart.length > 0 && (
                     <div className="bg-white rounded-2xl shadow-lg p-6">
-                        <div className="flex justify-between items-center mb-6">
-                            <span className="text-gray-600 font-medium">Subtotal ({cartCount} items)</span>
-                            <span className="text-xl font-bold text-[#6DBE45]">₹{total}</span>
+                        <div className="space-y-3 mb-6">
+                            {isBirthdayActive && birthdayDiscount > 0 && (
+                                <>
+                                    <div className="flex justify-between items-center text-gray-500 text-sm">
+                                        <span>Original Price ({cartCount} items)</span>
+                                        <span className="line-through">₹{originalTotal}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-green-600 text-sm font-semibold">
+                                        <span>🎂 1st Birthday Discount (50% OFF)</span>
+                                        <span>-₹{birthdayDiscount}</span>
+                                    </div>
+                                </>
+                            )}
+                            <div className="flex justify-between items-center border-t border-gray-100 pt-3">
+                                <span className="text-gray-800 font-bold text-lg">Subtotal ({cartCount} items)</span>
+                                <span className="text-2xl font-bold font-serif text-[#6DBE45]">₹{total}</span>
+                            </div>
                         </div>
                         <Button
                             className="w-full bg-[#6DBE45] hover:bg-[#5da838] text-white py-4 rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-1"

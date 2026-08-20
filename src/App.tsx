@@ -28,6 +28,7 @@ import RefundPolicyPage from './pages/RefundPolicyPage';
 import DisclaimerPage from './pages/DisclaimerPage';
 import ChatWithExpertPage from './pages/ChatWithExpertPage';
 import ScrollToTop from './components/ScrollToTop';
+import MobileStickyOffer from './components/campaign/MobileStickyOffer';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <CartProvider>
           <div className="min-h-screen bg-white flex flex-col">
             <ScrollToTop />
+            <MobileStickyOffer />
             <Routes>
               <Route
                 path="*"
