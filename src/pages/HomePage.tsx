@@ -38,20 +38,19 @@ export default function HomePage() {
     const fetchProducts = async () => {
       try {
         const { data } = await api.get('/products');
-        // Determine best sellers logic, or just take first 6 for now
-        // If data has 'isBestSeller' flag use that, else slice
-        const popular = data.filter((p: any) => p.isBestSeller).length > 0
-          ? data.filter((p: any) => p.isBestSeller)
-          : data.slice(0, 6);
+        if (Array.isArray(data) && data.length > 0) {
+          const popular = data.filter((p: any) => p && p.isBestSeller).length > 0
+            ? data.filter((p: any) => p && p.isBestSeller)
+            : data;
 
-        // Map _id to id for component compatibility if needed
-        const formatted = popular.map((p: any) => ({
-          ...p,
-          id: p._id
-        }));
-        setBestSellers(formatted);
+          const formatted = popular.map((p: any) => ({
+            ...p,
+            id: p._id || p.id
+          }));
+          setBestSellers(formatted);
+        }
       } catch (error) {
-        console.error('Failed to fetch products');
+        console.error('Failed to fetch products:', error);
       }
     };
     fetchProducts();
@@ -312,9 +311,13 @@ export default function HomePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {bestSellers.map((product) => (
             <ProductCard
-              key={product.id}
-              {...product}
-              onClick={() => navigate(`/product/${product.id}`)}
+              key={product.id || product._id}
+              name={product.name}
+              price={product.price}
+              rating={product.rating}
+              image={product.image}
+              tag={product.tag}
+              onClick={() => navigate(`/product/${product.id || product._id}`)}
               onAddToCart={() => { }}
             />
           ))}

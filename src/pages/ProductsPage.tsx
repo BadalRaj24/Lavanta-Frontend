@@ -54,16 +54,19 @@ export default function ProductsPage() {
     }
   };
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = (products || []).filter(product => {
+    if (!product) return false;
     if (selectedSkinType.length > 0) {
-      const hasMatchingSkinType = product.skinType.some(type => selectedSkinType.includes(type));
+      const skinList = Array.isArray(product.skinType) ? product.skinType : [];
+      const hasMatchingSkinType = skinList.some(type => typeof type === 'string' && selectedSkinType.includes(type.toLowerCase()));
       if (!hasMatchingSkinType) return false;
     }
 
     if (priceRange !== 'all') {
-      if (priceRange === 'under500' && product.price >= 500) return false;
-      if (priceRange === '500to700' && (product.price < 500 || product.price > 700)) return false;
-      if (priceRange === 'above700' && product.price <= 700) return false;
+      const pPrice = product.price || 0;
+      if (priceRange === 'under500' && pPrice >= 500) return false;
+      if (priceRange === '500to700' && (pPrice < 500 || pPrice > 700)) return false;
+      if (priceRange === 'above700' && pPrice <= 700) return false;
     }
 
     return true;
@@ -72,10 +75,9 @@ export default function ProductsPage() {
   const finalFilteredProducts = filteredProducts.filter(product => {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      return (
-        product.name.toLowerCase().includes(query) ||
-        product.tag.toLowerCase().includes(query)
-      );
+      const nameMatch = product.name ? product.name.toLowerCase().includes(query) : false;
+      const tagMatch = product.tag ? product.tag.toLowerCase().includes(query) : false;
+      return nameMatch || tagMatch;
     }
     return true;
   });
