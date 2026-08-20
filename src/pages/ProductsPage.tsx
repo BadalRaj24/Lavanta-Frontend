@@ -99,12 +99,12 @@ export default function ProductsPage() {
             <div className="inline-flex items-center space-x-2 bg-amber-200/70 border border-amber-300 px-4 py-1.5 rounded-full mb-4 shadow-sm">
               <Gift className="w-4 h-4 text-amber-800" />
               <span className="text-xs sm:text-sm font-bold tracking-widest text-amber-900 uppercase">
-                1ST BIRTHDAY CELEBRATION
+                LAVANTA BIRTHDAY BASH SALE
               </span>
               <Sparkles className="w-4 h-4 text-amber-800" />
             </div>
             <h1 className="font-serif text-4xl sm:text-5xl font-bold text-gray-900 mb-3">
-              Birthday Special • 50% OFF
+              Birthday Bash Sale • 50% OFF
             </h1>
             <p className="text-gray-700 text-lg max-w-2xl mx-auto">
               Celebrate one year of honest skincare with our signature Glow Face Serum at just <span className="font-bold text-[#6DBE45] text-xl">₹199</span> (Original: <span className="line-through text-gray-400">₹399</span>).

@@ -52,7 +52,7 @@ export default function Header() {
 
   const navItems = [
     { label: 'Home', path: '/' },
-    ...(isBirthdayActive ? [{ label: '🎂 Birthday Offer', path: '/products' }] : []),
+    ...(isBirthdayActive ? [{ label: '🎂 Birthday Bash', path: '/products' }] : []),
     { label: 'About Us', path: '/about' },
     { label: 'Contact', path: '/contact' }
   ];

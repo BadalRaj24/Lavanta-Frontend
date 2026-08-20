@@ -13,7 +13,7 @@ export default function BirthdayCountdown() {
       <div className="flex items-center justify-center space-x-2 mb-3">
         <Clock className="w-4 h-4 text-[#6DBE45]" />
         <span className="text-xs sm:text-sm font-semibold tracking-wider uppercase text-gray-700">
-          BIRTHDAY OFFER ENDS IN
+          BIRTHDAY BASH SALE ENDS IN
         </span>
       </div>
 

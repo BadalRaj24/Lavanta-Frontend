@@ -605,7 +605,7 @@ export default function CheckoutPage() {
                                             <span className="line-through">₹{rawOriginalTotal}</span>
                                         </div>
                                         <div className="flex justify-between text-green-600 text-sm font-semibold">
-                                            <span>🎂 1st Birthday Discount (50% OFF)</span>
+                                            <span>🎂 Birthday Bash Discount (50% OFF)</span>
                                             <span>-₹{birthdayDiscountAmount}</span>
                                         </div>
                                     </>

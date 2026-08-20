@@ -6,7 +6,7 @@
  */
 
 export const CAMPAIGN_CONFIG = {
-  CAMPAIGN_NAME: 'Lavanta Naturals 1st Birthday',
+  CAMPAIGN_NAME: 'Lavanta Birthday Bash Sale',
   CAMPAIGN_ENABLED: true, // Emergency Master Toggle: Set to false to instantly deactivate campaign
   CAMPAIGN_START: '2026-08-22T00:00:00+05:30',
   CAMPAIGN_END: '2026-08-26T00:00:00+05:30', // Ends when 26 August begins (25 Aug 23:59:59.999 IST)
@@ -19,17 +19,17 @@ export const CAMPAIGN_CONFIG = {
   DISCOUNT_AMOUNT: 200,
 
   // Copy Hierarchy
-  EYEBROW: 'LAVANTA NATURALS TURNS 1',
+  EYEBROW: 'LAVANTA BIRTHDAY BASH SALE',
   HEADLINE: 'ONE YEAR. ONE BEAUTIFUL CELEBRATION.',
   SUBHEADLINE: "We're celebrating one beautiful year of Lavanta Naturals with a special birthday offer on our Glow Face Serum.",
   SUPPORTING_LINE: 'A little celebration from us to your skin.',
   CAMPAIGN_LABEL: '🎂 BIRTHDAY SPECIAL • 22–25 AUGUST',
-  BADGE: '1ST BIRTHDAY SPECIAL',
+  BADGE: 'BIRTHDAY BASH SPECIAL',
   CTA: 'SHOP BIRTHDAY OFFER',
 
   // Announcement Bar
-  ANNOUNCEMENT_DESKTOP: '🎂 LAVANTA NATURALS TURNS 1 — 50% OFF | ₹399 → ₹199 | 22–25 AUGUST',
-  ANNOUNCEMENT_MOBILE: '🎂 1ST BIRTHDAY | 50% OFF | ₹199',
+  ANNOUNCEMENT_DESKTOP: '🎂 LAVANTA BIRTHDAY BASH SALE — 50% OFF | ₹399 → ₹199 | 22–25 AUGUST',
+  ANNOUNCEMENT_MOBILE: '🎂 BIRTHDAY BASH SALE | 50% OFF | ₹199',
 
   // Birthday Story Section
   STORY_HEADLINE: "WE'RE TURNING ONE! 🎂",

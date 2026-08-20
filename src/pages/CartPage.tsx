@@ -29,7 +29,7 @@ export default function CartPage() {
                     <div className="mb-6 bg-gradient-to-r from-amber-500/10 via-[#6DBE45]/10 to-amber-500/10 border border-amber-300/60 rounded-2xl p-4 flex items-center justify-between text-amber-900 shadow-sm">
                         <div className="flex items-center space-x-2">
                             <Gift className="w-5 h-5 text-amber-700" />
-                            <span className="font-bold text-sm sm:text-base">1st Birthday Offer Applied!</span>
+                            <span className="font-bold text-sm sm:text-base">Birthday Bash Offer Applied!</span>
                         </div>
                         <span className="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full uppercase">
                             50% OFF
@@ -113,7 +113,7 @@ export default function CartPage() {
                                         <span className="line-through">₹{originalTotal}</span>
                                     </div>
                                     <div className="flex justify-between items-center text-green-600 text-sm font-semibold">
-                                        <span>🎂 1st Birthday Discount (50% OFF)</span>
+                                        <span>🎂 Birthday Bash Discount (50% OFF)</span>
                                         <span>-₹{birthdayDiscount}</span>
                                     </div>
                                 </>

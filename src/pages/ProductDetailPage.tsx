@@ -191,7 +191,7 @@ export default function ProductDetailPage() {
               <div className="mb-4 bg-gradient-to-r from-amber-500 via-[#6DBE45] to-amber-600 text-white p-3 rounded-2xl shadow-md flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Gift className="w-5 h-5 text-amber-200" />
-                  <span className="font-bold text-sm tracking-wide">🎂 1st Birthday Offer</span>
+                  <span className="font-bold text-sm tracking-wide">🎂 Birthday Bash Sale</span>
                 </div>
                 <span className="bg-white text-amber-900 text-xs font-black px-2.5 py-1 rounded-full uppercase">
                   50% OFF
@@ -201,7 +201,7 @@ export default function ProductDetailPage() {
 
             <div className="flex items-center space-x-2 mb-4">
               <span className="bg-[#6DBE45] text-white text-xs px-3 py-1 rounded-full font-medium flex items-center shadow-sm">
-                <Sparkles className="w-3 h-3 mr-1 fill-white" /> {isBirthdayActive ? '1st Birthday Special' : 'Bestseller'}
+                <Sparkles className="w-3 h-3 mr-1 fill-white" /> {isBirthdayActive ? 'Birthday Bash Special' : 'Bestseller'}
               </span>
               <span className="bg-green-50 text-green-700 text-xs px-3 py-1 rounded-full font-medium border border-green-100">In Stock</span>
             </div>

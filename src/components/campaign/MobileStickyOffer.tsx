@@ -19,7 +19,7 @@ export default function MobileStickyOffer() {
         <div className="flex flex-col">
           <div className="flex items-center space-x-1">
             <span className="text-[11px] font-bold tracking-wider text-amber-700 uppercase">
-              🎂 1ST BIRTHDAY
+              🎂 BIRTHDAY BASH
             </span>
             <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded">
               {config.DISCOUNT_PERCENT}% OFF
