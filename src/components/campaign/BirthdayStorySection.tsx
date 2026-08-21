@@ -51,7 +51,7 @@ export default function BirthdayStorySection() {
             </span>
           </div>
           <p className="text-xs sm:text-sm font-semibold text-gray-500 tracking-wider uppercase mb-6">
-            Glow Face Serum (30ml) • Limited Anniversary Batch
+            Niacinamide 10% Face Serum (30ml) • Limited Anniversary Batch
           </p>
 
           <Button

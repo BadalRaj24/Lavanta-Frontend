@@ -107,7 +107,7 @@ export default function ProductsPage() {
               Birthday Bash Sale • 50% OFF
             </h1>
             <p className="text-gray-700 text-lg max-w-2xl mx-auto">
-              Celebrate one year of honest skincare with our signature Glow Face Serum at just <span className="font-bold text-[#6DBE45] text-xl">₹199</span> (Original: <span className="line-through text-gray-400">₹399</span>).
+              Celebrate one year of honest skincare with our signature Niacinamide 10% Face Serum at just <span className="font-bold text-[#6DBE45] text-xl">₹199</span> (Original: <span className="line-through text-gray-400">₹399</span>).
             </p>
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function ProductsPage() {
           </h2>
           <p className="text-white text-lg mb-6">
             {isBirthdayActive
-              ? "Experience our Glow Face Serum at ₹199 (50% OFF) — A special celebration from us to your skin."
+              ? "Experience our Niacinamide 10% Face Serum at ₹199 (50% OFF) — A special celebration from us to your skin."
               : "Shop the Lavanta Glow Set and get complete skincare at exclusive prices"}
           </p>
           <button 

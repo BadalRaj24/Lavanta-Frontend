@@ -60,7 +60,7 @@ export default function HomePage() {
     {
       name: 'Vaishnavi Nayak',
       image: '/images/vaishnavi-nayak.jpg',
-      review: 'The Glow Face Serum made a visible difference in just two weeks. My skin looks brighter, smoother, and more even'
+      review: 'The Niacinamide 10% Face Serum made a visible difference in just two weeks. My skin looks brighter, smoother, and more even'
     },
     {
       name: 'Faizan',
@@ -113,7 +113,7 @@ export default function HomePage() {
               {/* Price & Offer Display */}
               <div className="bg-white/90 backdrop-blur-sm border border-[#DFC5FE] p-5 sm:p-6 rounded-2xl shadow-lg max-w-lg">
                 <div className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                  Glow Face Serum
+                  Niacinamide 10% Face Serum
                 </div>
 
                 <div className="flex items-baseline space-x-4 mb-2">
@@ -187,7 +187,7 @@ export default function HomePage() {
               <div className="relative overflow-hidden rounded-3xl shadow-2xl aspect-square border-2 border-amber-100/60 bg-white/70 backdrop-blur-sm animate-soft-float">
                 <img
                   src={heroImages[currentSlide]}
-                  alt="Lavanta Naturals Glow Face Serum"
+                  alt="Lavanta Naturals Niacinamide 10% Face Serum"
                   className="w-full h-full object-cover"
                 />
 

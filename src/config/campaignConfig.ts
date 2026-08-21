@@ -21,7 +21,7 @@ export const CAMPAIGN_CONFIG = {
   // Copy Hierarchy
   EYEBROW: 'LAVANTA BIRTHDAY BASH SALE',
   HEADLINE: 'ONE YEAR. ONE BEAUTIFUL CELEBRATION.',
-  SUBHEADLINE: "We're celebrating one beautiful year of Lavanta Naturals with a special birthday offer on our Glow Face Serum.",
+  SUBHEADLINE: "We're celebrating one beautiful year of Lavanta Naturals with a special birthday offer on our Niacinamide 10% Face Serum.",
   SUPPORTING_LINE: 'A little celebration from us to your skin.',
   CAMPAIGN_LABEL: '🎂 BIRTHDAY SPECIAL • 22–25 AUGUST',
   BADGE: 'BIRTHDAY BASH SPECIAL',
